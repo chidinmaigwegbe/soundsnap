@@ -1,0 +1,19 @@
+name = "soundsnap-backend"
+main = "worker.js"
+compatibility_date = "2026-05-28"
+
+# Container configuration
+[[containers]]
+class_name = "SoundSnapContainer"
+image = "./Dockerfile"
+max_instances = 5
+
+# Durable Objects binding
+[[durable_objects.bindings]]
+class_name = "SoundSnapContainer"
+name = "SOUNDSNAP_CONTAINER"
+
+# Migration for Durable Objects
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["SoundSnapContainer"]

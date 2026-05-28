@@ -1,0 +1,14 @@
+services:
+  - type: web
+    name: soundsnap-backend
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 3001
+      - key: AUDD_API_KEY
+        sync: false  # Set in Render dashboard
+    healthCheckPath: /api/health
+    plan: free
