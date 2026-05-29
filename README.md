@@ -92,7 +92,6 @@ Health check.
 
 ## 🔒 Security
 
-- API keys stored in `.env` (not committed)
 - File uploads limited to 50MB
 - Temporary files auto-deleted after 1 minute
 - CORS enabled for development
