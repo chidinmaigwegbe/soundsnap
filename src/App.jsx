@@ -6,7 +6,8 @@ import "./index.css";
 
 // iPod-style App
 function App() {
-  const [currentScreen, setCurrentScreen] = useState("menu"); // menu, record, url, result, settings
+  const [currentScreen, setCurrentScreen] = useState("menu");
+  const [menuIndex, setMenuIndex] = useState(0);
   const [isRecording, setIsRecording] = useState(false);
   const [recordingTime, setRecordingTime] = useState(0);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -25,6 +26,21 @@ function App() {
   useEffect(() => {
     localStorage.setItem("soundsnap_settings", JSON.stringify(settings));
   }, [settings]);
+
+  const navigateMenu = (direction) => {
+    if (currentScreen !== "menu") return;
+    setMenuIndex((prev) => {
+      if (direction === "up") return (prev - 1 + menuItems.length) % menuItems.length;
+      return (prev + 1) % menuItems.length;
+    });
+  };
+
+  const selectCurrentItem = () => {
+    if (currentScreen !== "menu") return;
+    const selected = menuItems[menuIndex];
+    if (selected.id === "record") startRecording();
+    else setCurrentScreen(selected.id);
+  };
 
   const startRecording = async () => {
     try {
@@ -171,20 +187,26 @@ function App() {
                   <div className="px-4 py-3 border-b border-white/10">
                     <h2 className="text-white font-bold text-lg">Menu</h2>
                   </div>
-                  {menuItems.map((item) => (
+                  {menuItems.map((item, index) => (
                     <button
                       key={item.id}
                       onClick={() => {
                         if (item.id === "record") startRecording();
                         else setCurrentScreen(item.id);
                       }}
-                      className="ipod-menu-item flex items-center justify-between px-4 py-4 text-white/90 hover:text-[#00a2ff] w-full text-left"
+                      className={`ipod-menu-item flex items-center justify-between px-4 py-4 w-full text-left transition-colors ${
+                        index === menuIndex
+                          ? "bg-[#00a2ff]/20 text-[#00a2ff]"
+                          : "text-white/90"
+                      }`}
                     >
                       <div className="flex items-center gap-3">
                         <span className="text-xl">{item.icon}</span>
                         <span className="text-base">{item.label}</span>
                       </div>
-                      <ChevronRight size={18} className="text-white/30" />
+                      {index === menuIndex && (
+                        <ChevronRight size={18} className="text-[#00a2ff]" />
+                      )}
                     </button>
                   ))}
                 </motion.div>
@@ -457,12 +479,63 @@ function App() {
         </div>
 
         {/* Click Wheel */}
-        <div className="ipod-clickwheel w-48 h-48 mx-auto relative">
-          {/* Center Button */}
+        <div className="ipod-clickwheel w-48 h-48 mx-auto relative select-none">
+          {/* Top Button - Navigate Up */}
+          <button
+            onClick={() => navigateMenu("up")}
+            className="absolute top-3 left-1/2 -translate-x-1/2 text-gray-400 text-xs font-medium hover:text-gray-600 active:text-gray-800 transition-colors"
+          >
+            ▲
+          </button>
+
+          {/* Bottom Button - Navigate Down */}
+          <button
+            onClick={() => navigateMenu("down")}
+            className="absolute bottom-3 left-1/2 -translate-x-1/2 text-gray-400 text-xs font-medium hover:text-gray-600 active:text-gray-800 transition-colors"
+          >
+            ▼
+          </button>
+
+          {/* Left Button - Go Back */}
           <button
             onClick={() => {
-              if (currentScreen === "record" && isRecording) stopRecording();
-              else if (currentScreen !== "menu") setCurrentScreen("menu");
+              if (currentScreen !== "menu") {
+                if (isRecording) stopRecording();
+                setCurrentScreen("menu");
+              }
+            }}
+            className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs font-medium hover:text-gray-600 active:text-gray-800 transition-colors"
+          >
+            ◀
+          </button>
+
+          {/* Right Button - Select */}
+          <button
+            onClick={() => {
+              if (currentScreen === "menu") {
+                const selected = menuItems[menuIndex];
+                if (selected.id === "record") startRecording();
+                else setCurrentScreen(selected.id);
+              }
+            }}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs font-medium hover:text-gray-600 active:text-gray-800 transition-colors"
+          >
+            ▶
+          </button>
+
+          {/* Center Button - Select or Menu */}
+          <button
+            onClick={() => {
+              if (currentScreen === "menu") {
+                const selected = menuItems[menuIndex];
+                if (selected.id === "record") startRecording();
+                else setCurrentScreen(selected.id);
+              } else if (currentScreen === "record" && isRecording) {
+                stopRecording();
+              } else if (currentScreen !== "menu") {
+                if (isRecording) stopRecording();
+                setCurrentScreen("menu");
+              }
             }}
             className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-20 h-20 rounded-full bg-gradient-to-b from-[#e0e0e4] to-[#c8c8cc] shadow-inner flex items-center justify-center z-10"
           >
@@ -471,25 +544,6 @@ function App() {
                 {currentScreen === "menu" ? "SELECT" : "MENU"}
               </span>
             </div>
-          </button>
-
-          {/* Wheel Buttons */}
-          <button
-            onClick={() => {
-              if (currentScreen === "menu") startRecording();
-            }}
-            className="absolute top-2 left-1/2 -translate-x-1/2 text-gray-500 text-xs font-medium hover:text-gray-700"
-          >
-            ▲
-          </button>
-          <button className="absolute bottom-2 left-1/2 -translate-x-1/2 text-gray-500 text-xs font-medium">
-            ▼
-          </button>
-          <button className="absolute left-2 top-1/2 -translate-y-1/2 text-gray-500 text-xs font-medium">
-            ◀
-          </button>
-          <button className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 text-xs font-medium">
-            ▶
           </button>
         </div>
       </motion.div>
